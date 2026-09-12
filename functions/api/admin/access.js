@@ -16,7 +16,7 @@
  *   ADMIN_PASSWORD - mật khẩu quản trị (Cuong@1211)
  */
 
-const ALL_MODULES = ["tuvi", "zodiac", "kinhdich", "batu", "numerology"];
+const ALL_MODULES = ["tuvi", "zodiac", "kinhdich", "batu", "numerology", "tarot"];
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
