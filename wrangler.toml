@@ -1,0 +1,16 @@
+# Cấu hình Cloudflare Pages cho trang quản trị AstroX (dashboard.theastrox.space).
+# Đây là MỘT Cloudflare Pages project RIÊNG (repo/thư mục riêng), trỏ vào
+# CÙNG D1 database "astrox-db" mà project AstroX chính đang dùng, để đọc và
+# ghi chung dữ liệu người dùng.
+
+name = "astrox-dashboard"
+pages_build_output_dir = "."
+compatibility_date = "2026-09-11"
+
+# Phải trùng database_id với project AstroX chính (xem wrangler.toml của
+# project astrox, hoặc Cloudflare Dashboard > Workers & Pages > D1 > astrox-db).
+[[d1_databases]]
+binding = "DB"
+database_name = "astrox-db"
+database_id = "bbefe032-7053-49cf-99f1-794d3fbc128e"
+
