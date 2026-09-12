@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>AstroX — Quản trị</title>
+<style>
+  :root{
+    --bg:#FBF8F3; --surface:#FFFFFF; --ink:#171716; --ink-soft:#6F6B64; --ink-faint:#9A958B;
+    --line:#E9E2D9; --teal:#147D73; --teal-dark:#0B5C53; --rose:#B85347; --sage:#5E8C6A;
+    --r-lg:16px; --r-md:12px; --r-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif; }
+  .wrap{ max-width:920px; margin:0 auto; padding:40px 20px 80px; }
+  h1{ font-size:22px; font-weight:800; margin:0 0 4px; }
+  .sub{ color:var(--ink-soft); font-size:13.5px; margin:0 0 28px; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:24px; }
+  .gate-form{ max-width:360px; margin:80px auto; text-align:center; }
+  .gate-form input{ width:100%; padding:11px 13px; border-radius:var(--r-md); border:1px solid var(--line); font-size:14px; margin:16px 0 10px; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:10px 18px; border-radius:var(--r-pill);
+    border:none; cursor:pointer; font-weight:700; font-size:13.5px; background:var(--teal); color:#fff; width:100%; }
+  .btn:hover{ background:var(--teal-dark); }
+  .err-text{ color:var(--rose); font-size:12.5px; margin-top:8px; min-height:16px; }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th,td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700; }
+  td.name{ font-weight:700; }
+  td.uid{ font-size:11px; color:var(--ink-faint); font-family:monospace; }
+  .toggle{ position:relative; width:38px; height:22px; border-radius:var(--r-pill); background:var(--line); cursor:pointer; border:none; padding:0; flex-shrink:0; }
+  .toggle::after{ content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.15s; box-shadow:0 1px 2px rgba(0,0,0,.2); }
+  .toggle.on{ background:var(--sage); }
+  .toggle.on::after{ left:18px; }
+  .toggle:disabled{ opacity:.5; cursor:wait; }
+  .mod-cell{ text-align:center; }
+  .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+  .toolbar .btn{ width:auto; background:none; border:1px solid var(--line); color:var(--ink-soft); }
+  .toolbar .btn:hover{ background:var(--bg); color:var(--ink); }
+  .empty{ text-align:center; padding:40px 0; color:var(--ink-faint); font-size:13.5px; }
+  .note{ font-size:12px; color:var(--ink-faint); margin-top:18px; line-height:1.6; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <form class="gate-form card" id="gate-form">
+    <h1 style="margin-bottom:2px;">AstroX — Quản trị</h1>
+    <p class="sub" style="margin-bottom:0;">Nhập mật khẩu quản trị để tiếp tục.</p>
+    <input type="password" id="gate-password" placeholder="Mật khẩu quản trị" autocomplete="current-password" required>
+    <button type="submit" class="btn">Đăng nhập</button>
+    <p class="err-text" id="gate-error"></p>
+  </form>
+
+  <div id="dash" hidden>
+    <div class="toolbar">
+      <div>
+        <h1>Danh sách người dùng</h1>
+        <p class="sub" style="margin-bottom:0;">Bật/tắt module được phép sử dụng cho từng tài khoản. Mặc định tất cả module đều được bật.</p>
+      </div>
+      <button class="btn" id="btn-refresh">Tải lại</button>
+    </div>
+    <div class="card" style="padding:0; overflow-x:auto;">
+      <table id="user-table">
+        <thead>
+          <tr>
+            <th>Người dùng</th>
+            <th class="mod-cell">Tử Vi</th>
+            <th class="mod-cell">Cung Hoàng Đạo</th>
+            <th class="mod-cell">Kinh Dịch</th>
+            <th class="mod-cell">Bát Tự</th>
+            <th class="mod-cell">Thần Số Học</th>
+          </tr>
+        </thead>
+        <tbody id="user-tbody"></tbody>
+      </table>
+      <div class="empty" id="user-empty" hidden>Chưa có người dùng nào.</div>
+    </div>
+    <p class="note">Danh sách lấy từ các tài khoản đã từng lưu hồ sơ trên AstroX (bảng user_data). Một module không có dòng phân quyền riêng nghĩa là đang được phép theo mặc định.</p>
+  </div>
+
+</div>
+
+<script>
+const MODULES = ["tuvi","zodiac","kinhdich","batu","numerology"];
+let adminPassword = "";
+
+const gateForm = document.getElementById("gate-form");
+const gateError = document.getElementById("gate-error");
+const dash = document.getElementById("dash");
+
+async function apiFetch(path, options={}){
+  const headers = Object.assign({"X-Admin-Password": adminPassword}, options.headers||{});
+  return fetch(path, Object.assign({}, options, {headers}));
+}
+
+function fmtDate(ms){
+  if(!ms) return "—";
+  try{ return new Date(ms).toLocaleString("vi-VN"); }catch(_){ return "—"; }
+}
+
+function renderUsers(users){
+  const tbody = document.getElementById("user-tbody");
+  const empty = document.getElementById("user-empty");
+  if(!users.length){ tbody.innerHTML=""; empty.hidden=false; return; }
+  empty.hidden = true;
+  tbody.innerHTML = users.map(u=>{
+    const label = u.email || u.name || "(chưa rõ)";
+    const sub = u.email && u.name ? u.name : (u.hasProfile ? "" : "Chưa lưu hồ sơ");
+    return `<tr data-uid="${u.userId}">
+      <td>
+        <div class="name">${escapeHtml(label)}</div>
+        ${sub ? `<div class="uid">${escapeHtml(sub)}</div>` : ""}
+        <div class="uid">${u.userId}</div>
+        <div class="uid">Hoạt động gần nhất: ${fmtDate(u.lastSeen)}</div>
+      </td>
+      ${MODULES.map(m=>`<td class="mod-cell"><button class="toggle ${u.access[m]?'on':''}" data-module="${m}" aria-label="${m}"></button></td>`).join("")}
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll(".toggle").forEach(btn=>{
+    btn.addEventListener("click", ()=> toggleModule(btn));
+  });
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+async function toggleModule(btn){
+  const tr = btn.closest("tr");
+  const userId = tr.dataset.uid;
+  const module = btn.dataset.module;
+  const nextEnabled = !btn.classList.contains("on");
+  btn.disabled = true;
+  try{
+    const res = await apiFetch("/api/admin/access", {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({userId, module, enabled: nextEnabled})
+    });
+    if(!res.ok) throw new Error("save failed");
+    btn.classList.toggle("on", nextEnabled);
+  }catch(_){
+    alert("Không lưu được thay đổi. Thử lại.");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function loadUsers(){
+  const res = await apiFetch("/api/admin/access");
+  if(res.status===401) throw new Error("unauthorized");
+  if(!res.ok) throw new Error("load failed");
+  const data = await res.json();
+  renderUsers(data.users||[]);
+}
+
+gateForm.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  gateError.textContent = "";
+  const pass = document.getElementById("gate-password").value;
+  adminPassword = pass;
+  try{
+    await loadUsers();
+    gateForm.hidden = true;
+    dash.hidden = false;
+  }catch(err){
+    adminPassword = "";
+    gateError.textContent = "Sai mật khẩu quản trị hoặc không tải được dữ liệu.";
+  }
+});
+
+document.getElementById("btn-refresh").addEventListener("click", ()=>{
+  loadUsers().catch(()=>{ alert("Không tải lại được danh sách."); });
+});
+</script>
+</body>
+</html>
