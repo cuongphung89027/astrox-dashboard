@@ -52,6 +52,17 @@ export async function onRequestGet(context) {
     const { results: accessRows } = await env.DB.prepare(
       "SELECT user_id, module, enabled FROM user_module_access"
     ).all();
+    // Tài khoản đăng nhập bằng Zalo (Worker) nằm ở bảng app_users — gộp vào
+    // danh sách để admin khóa/mở module cho cả user Zalo. user_id ghi xuống
+    // user_module_access chính là app_users.id, trùng với session.sub mà
+    // Worker dùng khi user Zalo gọi /api/module-access.
+    let zaloRows = [];
+    try {
+      const r = await env.DB.prepare(
+        "SELECT id, display_name, email, status, created_at, updated_at FROM app_users"
+      ).all();
+      zaloRows = r.results || [];
+    } catch { /* bảng app_users chưa tồn tại — bỏ qua */ }
 
     const profileByUser = {};
     (dataRows || []).forEach((row) => {
@@ -92,6 +103,18 @@ export async function onRequestGet(context) {
       users.push({
         userId: row.user_id, email: "", name: (profile && profile.name) || "",
         hasProfile: true, lastSeen: row.updated_at, access
+      });
+    });
+    // Tài khoản Zalo (Worker): id trong app_users chính là session.sub.
+    (zaloRows || []).forEach((row) => {
+      if (seenIds.has(row.id)) return;
+      seenIds.add(row.id);
+      const access = Object.fromEntries(ALL_MODULES.map((m) => [m, true]));
+      Object.assign(access, accessByUser[row.id] || {});
+      users.push({
+        userId: row.id, email: row.email || "", name: row.display_name || "",
+        provider: "zalo", hasProfile: true,
+        lastSeen: row.updated_at ? Date.parse(row.updated_at) : 0, access
       });
     });
     users.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
