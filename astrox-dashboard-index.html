@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12897C">
+<title>AstroX — Quản trị</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Design tokens — đồng bộ trang chính theastrox.space */
+    --bg:#FBF8F3; --bg-soft:#F5EEE5; --bg-deep:#F0E8DE; --surface:#FFFFFF; --surface-tint:#FFFCF8;
+    --ink:#171716; --ink-soft:#6F6B64; --ink-faint:#9A958B; --line:#E9E2D9;
+    --teal:#147D73; --teal-dark:#0B5C53; --teal-tint:#E3F1EE;
+    --gold:#C8953B; --gold-dark:#81621F; --gold-tint:#F5EBD4;
+    --ink-cta:#171716; --ink-cta-text:#FFFDF9;
+    --rose:#B85347; --rose-tint:#F3DEDA; --sage:#5E8C6A; --sage-tint:#DCEBDF;
+    --r-xl:24px; --r-lg:18px; --r-md:13px; --r-sm:9px; --r-pill:999px;
+    --shadow-1:0 1px 2px rgba(28,22,10,.04);
+    --shadow-2:0 12px 28px -18px rgba(28,22,10,.18);
+    --shadow-3:0 20px 45px -24px rgba(11,60,53,.22);
+    --font:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;
+    --font-display:'Cormorant Garamond','Be Vietnam Pro',serif;
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ margin:0; background:var(--bg-deep); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1240px; margin:0 auto; padding:34px 26px 110px; }
+  .sub{ color:var(--ink-soft); font-size:13.5px; line-height:1.6; margin-top:6px; }
+  .card{ background:var(--surface); border:1px solid rgba(233,226,217,.9); border-radius:var(--r-xl); padding:22px; box-shadow:var(--shadow-2); }
+  .card-flat{ background:var(--surface-tint); border:1px solid var(--line); border-radius:var(--r-lg); padding:18px; }
+  input,select,textarea{ font-family:inherit; }
+  input{ width:100%; padding:13px 15px; border-radius:var(--r-md); border:1.5px solid var(--line); font-size:15px; color:var(--ink); margin:14px 0 10px; background:var(--surface-tint); outline:none; transition:border-color .15s; }
+  input:focus{ border-color:var(--teal); background:#fff; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:12px 20px; border-radius:var(--r-pill);
+    border:none; cursor:pointer; font-weight:700; font-size:14px; background:var(--ink-cta); color:var(--ink-cta-text); width:100%;
+    transition:transform .15s, box-shadow .15s; }
+  .btn:active{ transform:scale(.97); }
+  .btn:hover{ box-shadow:0 8px 20px -6px rgba(20,23,26,.4); }
+  .btn.btn-primary{ background:var(--teal); }
+  .btn.btn-primary:hover{ background:var(--teal-dark); }
+  .err-text{ color:var(--rose); font-size:12.5px; margin-top:8px; min-height:16px; line-height:1.5; }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th,td{ text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700; white-space:nowrap; }
+  tr:last-child td{ border-bottom:none; }
+  td.name{ font-weight:700; }
+  td.uid{ font-size:11px; color:var(--ink-faint); font-family:ui-monospace,monospace; }
+  .toggle{ position:relative; width:44px; height:26px; border-radius:var(--r-pill); background:var(--line); cursor:pointer; border:none; padding:0; flex-shrink:0; transition:background .2s; }
+  .toggle::after{ content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:.18s; box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .toggle.on{ background:var(--sage); }
+  .toggle.on::after{ left:21px; }
+  .toggle:disabled{ opacity:.5; cursor:wait; }
+  .mod-cell{ text-align:center; }
+  .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+  .toolbar .btn{ width:auto; background:none; border:1.5px solid var(--line); color:var(--ink-soft); box-shadow:none; }
+  .toolbar .btn:hover{ background:var(--surface); color:var(--ink); border-color:var(--teal); }
+  .empty{ text-align:center; padding:44px 0; color:var(--ink-faint); font-size:13.5px; }
+  .note{ font-size:12px; color:var(--ink-faint); margin-top:16px; line-height:1.7; }
+  [hidden]{ display:none !important; }
+  .serif{ font-family:var(--font-display); }
+  /* Toast — đồng bộ style trang chính */
+  #toast{ position:fixed; left:50%; bottom:calc(84px + var(--safe-bottom)); transform:translateX(-50%) translateY(20px); z-index:200;
+    background:var(--ink-cta); color:var(--ink-cta-text); padding:13px 21px; border-radius:var(--r-pill);
+    font-size:13.5px; font-weight:600; box-shadow:var(--shadow-2); opacity:0; pointer-events:none; transition:.25s; max-width:88vw; text-align:center; }
+  #toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+  #toast.error{ background:var(--rose); }
+  @media(min-width:861px){ #toast{ bottom:30px; } }
+
+  /* ===== Layout: header brand + menu + panels ===== */
+  .topbar{ display:flex; align-items:center; gap:10px; padding:4px 2px 20px; }
+  .topbar .brand-mark{ width:30px; height:30px; }
+  .topbar .brand-name{ font-weight:700; font-size:18px; letter-spacing:-.03em; }
+  .topbar .brand-name b{ color:var(--teal); }
+
+  .layout{ display:grid; grid-template-columns:230px 1fr; gap:24px; align-items:start; margin-top:20px; }
+  .menu{ background:rgba(255,252,248,.92); border:1px solid var(--line); border-radius:var(--r-lg); padding:10px; position:sticky; top:22px; box-shadow:var(--shadow-1); }
+  .menu button{ display:flex; width:100%; align-items:center; gap:11px; border:0; background:transparent; border-radius:12px;
+    padding:11px 13px; color:var(--ink-soft); font:600 14px var(--font); text-align:left; cursor:pointer; transition:.15s; }
+  .menu button .mi{ width:20px; text-align:center; opacity:.8; }
+  .menu button:hover, .menu button.active{ background:var(--bg-soft); color:var(--ink); }
+  .menu button.active{ background:var(--ink-cta); color:var(--ink-cta-text); }
+  .menu .dd-toggle{ display:none; width:100%; align-items:center; justify-content:space-between; padding:13px 15px; font-size:14.5px; font-weight:700; color:var(--ink); border-radius:12px; border:1.5px solid var(--line); background:var(--surface); cursor:pointer; }
+  .menu .dd-toggle .arrow{ transition:transform .2s; }
+  .menu.open .dd-toggle .arrow{ transform:rotate(180deg); }
+  .menu .group{ font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); padding:14px 13px 6px; }
+  .panel-head{ margin-bottom:18px; }
+  .panel-head h2{ font-size:22px; font-weight:800; letter-spacing:-.02em; margin:0; }
+  .panel-head p{ margin:5px 0 0; }
+  .price-input{ width:96px !important; margin:0 !important; padding:8px 10px !important; text-align:right; font-size:13.5px; }
+  select.mini-btn{ padding:8px 10px; border-radius:var(--r-md); border:1.5px solid var(--line); background:var(--surface-tint); font-size:13px; font-weight:600; color:var(--ink); }
+  .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .mini-btn{ border:1.5px solid var(--line); background:var(--surface); border-radius:var(--r-md); padding:7px 13px; cursor:pointer; font-size:12.5px; font-weight:700; color:var(--ink-soft); transition:.15s; }
+  .mini-btn:hover{ color:var(--teal-dark); border-color:var(--teal); }
+  .mini-btn.danger{ color:var(--rose); }
+  .mini-btn.danger:hover{ border-color:var(--rose); }
+  .badge{ display:inline-block; padding:4px 11px; border-radius:var(--r-pill); font-size:11px; font-weight:700; background:var(--gold-tint); color:var(--gold-dark); }
+  .badge.on{ background:var(--sage-tint); color:#2F5C3B; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+  .stat{ padding:18px; border:1px solid rgba(233,226,217,.9); border-radius:var(--r-lg); background:var(--surface); box-shadow:var(--shadow-1); }
+  .stat b{ display:block; font-size:24px; margin-top:6px; letter-spacing:-.02em; }
+  .stat span{ font-size:11.5px; color:var(--ink-faint); font-weight:600; }
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px; }
+  .form-grid .full{ grid-column:1/-1; }
+  label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-top:10px; }
+  textarea{ width:100%; min-height:84px; padding:13px 15px; border-radius:var(--r-md); border:1.5px solid var(--line); font:inherit; font-size:14px; margin:8px 0 10px; background:var(--surface-tint); outline:none; resize:vertical; }
+  textarea:focus{ border-color:var(--teal); background:#fff; }
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+  /* ===== Gate (đăng nhập admin) ===== */
+  .gate-wrap{ min-height:80vh; display:flex; align-items:center; justify-content:center; }
+  @media(max-width:860px){ .gate-wrap{ min-height:60vh; } }
+  .gate-card{ max-width:400px; width:100%; padding:30px 26px; }
+  .gate-brand{ text-align:center; margin-bottom:20px; }
+  .gate-brand .brand-mark{ width:44px; height:44px; margin:0 auto 10px; display:block; }
+
+  /* ===== Mobile: menu thành hàng chip cuộn ngang dưới tiêu đề (không bottom nav) ===== */
+  @media(max-width:860px){
+    .wrap{ padding:20px 16px 70px; }
+    .topbar{ padding:2px 2px 14px; }
+    .topbar .page-title{ display:none; }
+    .layout{ grid-template-columns:1fr; gap:16px; margin-top:8px; }
+    .menu{ position:static; display:block; padding:6px; }
+    .menu .group{ display:none; }
+    .menu .dd-toggle{ display:flex; }
+    .menu button{ display:none; width:100%; padding:13px 15px; font-size:15px; border-radius:12px; }
+    .menu.open button{ display:flex; }
+    .menu button.active{ background:var(--teal-tint); color:var(--teal-dark); }
+    .stat-grid{ grid-template-columns:repeat(2,1fr); gap:10px; }
+    .stat b{ font-size:20px; }
+    .form-grid{ grid-template-columns:1fr; }
+    .panel-head h2{ font-size:19px; }
+    .card{ padding:18px; }
+    input{ font-size:16px; } /* chống iOS auto-zoom */
+    #toast{ bottom:20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="gate-wrap" id="gate-wrap">
+    <form class="gate-form card gate-card" id="gate-form">
+      <div class="gate-brand">
+        <img class="brand-mark" src="https://theastrox.space/assets/logo.png" alt="AstroX" onerror="this.style.display='none'">
+        <div class="brand-name" style="font-weight:700; font-size:20px; letter-spacing:-.03em;">Astro<b style="color:var(--teal);">X</b></div>
+        <p class="sub" style="margin-top:4px;">Trang quản trị</p>
+      </div>
+      <input type="password" id="gate-password" placeholder="Mật khẩu quản trị" autocomplete="current-password" required>
+      <button type="submit" class="btn btn-primary">Đăng nhập</button>
+      <p class="err-text" id="gate-error"></p>
+    </form>
+  </div>
+
+  <div id="dash" hidden>
+    <div class="topbar">
+      <img class="brand-mark" src="https://theastrox.space/assets/logo.png" alt="" onerror="this.style.display='none'">
+      <div class="brand-name">Astro<b style="color:var(--teal);">X</b></div>
+      <div class="page-title" style="margin-left:auto;">
+        <div class="brand-name" style="font-family:var(--font-display); font-weight:600; font-size:22px;">Dashboard</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <nav class="menu" id="menu" aria-label="Menu quản trị">
+        <button type="button" class="dd-toggle" id="dd-toggle"><span id="dd-label">▦ Tổng quan</span><span class="arrow">▾</span></button>
+        <div class="group">Tổng quan</div>
+        <button class="active" data-panel="overview"><span class="mi">▦</span>Tổng quan</button>
+        <div class="group">Quản lý</div>
+        <button data-panel="users"><span class="mi">♟</span>Tài khoản user</button>
+        <button data-panel="promotions"><span class="mi">◇</span>Promotion code</button>
+        <button data-panel="points"><span class="mi">◈</span>AstroX Point</button>
+        <button data-panel="modules"><span class="mi">◉</span>Module — khóa/giá</button>
+        <button data-panel="popups"><span class="mi">▱</span>Popup thông báo</button>
+      </nav>
+
+      <div id="panels">
+        <section data-panel-content="overview">
+          <div class="panel-head">
+            <h2 class="serif">Tổng quan</h2>
+            <p class="sub">Số liệu hệ thống AstroX.</p>
+          </div>
+          <div class="stat-grid" id="stat-grid">
+            <div class="stat"><span>Người dùng</span><b id="st-users">—</b></div>
+            <div class="stat"><span>Tổng Point</span><b id="st-points">—</b></div>
+            <div class="stat"><span>Module đang mở</span><b id="st-modules">—</b></div>
+            <div class="stat"><span>Popup bật</span><b id="st-popups">—</b></div>
+          </div>
+          <div class="card">
+            <h3 style="margin:0 0 6px; font-size:15.5px;">Hướng dẫn</h3>
+            <p class="sub" style="margin:0;">Chọn một mục ở menu để quản lý chi tiết. Số liệu tổng quan cập nhật theo lần tải trang.</p>
+          </div>
+        </section>
+
+        <section data-panel-content="users" hidden>
+          <div class="panel-head">
+            <h2 class="serif">Tài khoản user</h2>
+            <p class="sub">Bật/tắt module được phép sử dụng cho từng tài khoản. Module không có dòng phân quyền riêng nghĩa là được phép theo mặc định.</p>
+          </div>
+          <div class="card" style="padding:6px 12px;">
+            <div class="table-scroll">
+              <table id="user-table">
+                <thead>
+                  <tr>
+                    <th>Người dùng</th>
+                    <th class="mod-cell">Tử Vi</th>
+                    <th class="mod-cell">Cung Hoàng Đạo</th>
+                    <th class="mod-cell">Kinh Dịch</th>
+                    <th class="mod-cell">Bát Tự</th>
+                    <th class="mod-cell">Thần Số Học</th>
+                    <th class="mod-cell">Tarot</th>
+                  </tr>
+                </thead>
+                <tbody id="user-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="user-empty" hidden>Chưa có người dùng nào.</div>
+          </div>
+          <div style="text-align:right; margin-top:12px;"><button class="btn" id="btn-refresh" style="width:auto;">Tải lại danh sách</button></div>
+        </section>
+
+        <section data-panel-content="promotions" hidden>
+          <div class="panel-head">
+            <h2 class="serif">Promotion code</h2>
+            <p class="sub">Tạo mã quy đổi AstroX Point và quản lý trạng thái.</p>
+          </div>
+          <div class="card">
+            <div class="form-grid">
+              <div><label>Mã</label><input id="pc-code" placeholder="VD: TET2026" autocapitalize="characters"></div>
+              <div><label>Số Point</label><input id="pc-points" type="number" inputmode="numeric" min="1" value="100"></div>
+              <div><label>Giới hạn lượt (tùy chọn)</label><input id="pc-max" type="number" inputmode="numeric" min="1" placeholder="—"></div>
+            </div>
+            <button class="btn btn-primary" id="pc-create" style="width:auto; margin-top:12px;">Tạo mã</button>
+            <p class="err-text" id="pc-error"></p>
+          </div>
+          <div class="card" style="margin-top:16px; padding:6px 12px;">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Mã</th><th>Point</th><th>Đã dùng</th><th>Giới hạn</th><th>Trạng thái</th><th></th></tr></thead>
+                <tbody id="pc-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="pc-empty" hidden>Chưa có promotion code nào.</div>
+          </div>
+        </section>
+
+        <section data-panel-content="points" hidden>
+          <div class="panel-head">
+            <h2 class="serif">AstroX Point</h2>
+            <p class="sub">Cộng/trừ điểm cho người dùng và xem số dư.</p>
+          </div>
+          <div class="card">
+            <div class="form-grid">
+              <div><label>User ID (xem tab Tài khoản)</label><input id="pt-user" placeholder="user id" autocapitalize="off"></div>
+              <div><label>Point (+ cộng, − trừ)</label><input id="pt-delta" type="number" inputmode="numeric" placeholder="200 hoặc -50"></div>
+              <div><label>Lý do</label><input id="pt-reason" placeholder="VD: thưởng sự kiện"></div>
+            </div>
+            <button class="btn btn-primary" id="pt-submit" style="width:auto; margin-top:12px;">Thực hiện</button>
+            <p class="err-text" id="pt-error"></p>
+          </div>
+          <div class="card" style="margin-top:16px; padding:6px 12px;">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>User</th><th>Số dư</th><th>Cập nhật</th></tr></thead>
+                <tbody id="pt-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="pt-empty" hidden>Chưa có tài khoản điểm nào.</div>
+          </div>
+        </section>
+
+        <section data-panel-content="modules" hidden>
+          <div class="panel-head">
+            <h2 class="serif">Module — khóa/giá</h2>
+            <p class="sub">Chế độ truy cập: <b>public</b> (không cần đăng nhập) · <b>login</b> (cần đăng nhập) · <b>paid</b> (tốn Point) · <b>disabled</b> (khóa hoàn toàn).</p>
+          </div>
+          <div class="card" style="padding:6px 12px;">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Module</th><th>Chế độ</th><th>Giá (Point)</th><th class="mod-cell">Khóa / Mở</th></tr></thead>
+                <tbody id="mod-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="mod-empty" hidden>Chưa có module nào.</div>
+          </div>
+        </section>
+
+        <section data-panel-content="popups" hidden>
+          <div class="panel-head">
+            <h2 class="serif">Popup thông báo</h2>
+            <p class="sub">Soạn thông báo theo module và hẹn giờ hết hạn.</p>
+          </div>
+          <div class="card">
+            <div class="form-grid">
+              <div><label>Module</label><select id="pp-module" class="mini-btn" style="width:100%; margin-top:8px;">
+                <option value="">— Toàn bộ —</option>
+                ${''}
+              </select></div>
+              <div><label>Tiêu đề</label><input id="pp-title" placeholder="VD: Bảo trì hệ thống"></div>
+              <div><label>Hết hạn (tùy chọn)</label><input id="pp-ends" type="datetime-local"></div>
+              <div class="full"><label>Nội dung</label><textarea id="pp-body" placeholder="Nội dung thông báo hiển thị cho người dùng"></textarea></div>
+            </div>
+            <button class="btn btn-primary" id="pp-create" style="width:auto; margin-top:12px;">Tạo popup</button>
+            <p class="err-text" id="pp-error"></p>
+          </div>
+          <div class="card" style="margin-top:16px; padding:6px 12px;">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Tiêu đề</th><th>Module</th><th>Trạng thái</th><th class="mod-cell">Bật/Tắt</th><th></th></tr></thead>
+                <tbody id="pp-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="pp-empty" hidden>Chưa có popup nào.</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let _toastTimer=null;
+function toast(msg, isErr){
+  let el=document.getElementById('toast');
+  if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.toggle('error', !!isErr);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'), 2600);
+}
+const MODULES = ["tuvi","zodiac","kinhdich","batu","numerology","tarot"];
+const MODULE_LABELS = { tuvi:"Tử Vi", zodiac:"Cung Hoàng Đạo", kinhdich:"Kinh Dịch", batu:"Bát Tự", numerology:"Thần Số Học", tarot:"Tarot" };
+let adminPassword = "";
+
+// Đổ danh sách module vào dropdown của form popup
+(function fillModuleOptions(){
+  const sel = document.getElementById("pp-module");
+  if(!sel) return;
+  MODULES.forEach(slug=>{
+    const opt = document.createElement("option");
+    opt.value = slug;
+    opt.textContent = MODULE_LABELS[slug] || slug;
+    sel.appendChild(opt);
+  });
+})();
+
+const gateForm = document.getElementById("gate-form");
+const gateError = document.getElementById("gate-error");
+const dash = document.getElementById("dash");
+
+async function apiFetch(path, options={}){
+  const headers = Object.assign({"X-Admin-Password": adminPassword}, options.headers||{});
+  return fetch(path, Object.assign({}, options, {headers}));
+}
+function fmtDate(v){
+  if(!v) return "—";
+  try{ return new Date(/^\d+$/.test(v)?Number(v):v).toLocaleString("vi-VN"); }catch(_){ return "—"; }
+}
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+const menuEl = document.getElementById("menu");
+const ddToggle = document.getElementById("dd-toggle");
+const ddLabel = document.getElementById("dd-label");
+ddToggle.addEventListener("click", ()=> menuEl.classList.toggle("open"));
+document.querySelectorAll("#menu button[data-panel]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll("#menu button[data-panel]").forEach(b=>b.classList.toggle("active", b===btn));
+    ddLabel.textContent = btn.textContent.trim();
+    menuEl.classList.remove("open");
+    const key = btn.dataset.panel;
+    document.querySelectorAll("[data-panel-content]").forEach(sec=> sec.hidden = sec.dataset.panelContent !== key);
+    if(key === "overview") loadOverview();
+    if(key === "users") loadUsers().catch(()=>{});
+    if(key === "promotions") loadPromotions().catch(()=>{});
+    if(key === "points") loadPoints().catch(()=>{});
+    if(key === "modules") loadModules().catch(()=>{});
+    if(key === "popups") loadPopups().catch(()=>{});
+  });
+});
+
+async function loadOverview(){
+  try{
+    const [u, m, p, pp] = await Promise.all([
+      apiFetch("/api/admin/access").then(r=>r.ok?r.json():{}),
+      apiFetch("/api/admin/modules").then(r=>r.ok?r.json():{}),
+      apiFetch("/api/admin/points").then(r=>r.ok?r.json():{}),
+      apiFetch("/api/admin/popups").then(r=>r.ok?r.json():{}),
+    ]);
+    document.getElementById("st-users").textContent = (u.users||[]).length;
+    const mods = m.modules||[];
+    document.getElementById("st-modules").textContent = mods.filter(x=>x.enabled).length + "/" + mods.length;
+    const accounts = p.accounts||[];
+    document.getElementById("st-points").textContent = accounts.reduce((s,a)=>s+(a.balance||0), 0);
+    document.getElementById("st-popups").textContent = (pp.popups||[]).filter(x=>x.active).length;
+  }catch(_){ }
+}
+
+function renderUsers(users){
+  const tbody = document.getElementById("user-tbody");
+  const empty = document.getElementById("user-empty");
+  if(!users.length){ tbody.innerHTML=""; empty.hidden=false; return; }
+  empty.hidden = true;
+  tbody.innerHTML = users.map(u=>{
+    const label = u.email || u.name || "(chưa rõ)";
+    const sub = u.email && u.name ? u.name : (u.hasProfile ? "" : "Chưa lưu hồ sơ");
+    return `<tr data-uid="${u.userId}">
+      <td>
+        <div class="name">${escapeHtml(label)}</div>
+        ${sub ? `<div class="uid">${escapeHtml(sub)}</div>` : ""}
+        <div class="uid">${u.userId}</div>
+        <div class="uid">Hoạt động gần nhất: ${fmtDate(u.lastSeen)}</div>
+      </td>
+      ${MODULES.map(m=>`<td class="mod-cell"><button class="toggle ${u.access[m]?'on':''}" data-module="${m}" aria-label="${m}"></button></td>`).join("")}
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll(".toggle").forEach(btn=>{
+    btn.addEventListener("click", ()=> toggleModule(btn));
+  });
+}
+async function toggleModule(btn){
+  const tr = btn.closest("tr");
+  const userId = tr.dataset.uid;
+  const module = btn.dataset.module;
+  const nextEnabled = !btn.classList.contains("on");
+  btn.disabled = true;
+  try{
+    const res = await apiFetch("/api/admin/access", {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({userId, module, enabled: nextEnabled})
+    });
+    if(!res.ok) throw new Error("save failed");
+    btn.classList.toggle("on", nextEnabled);
+  }catch(_){
+    toast('Không lưu được thay đổi. Thử lại.', true);
+  }finally{
+    btn.disabled = false;
+  }
+}
+async function loadUsers(){
+  const res = await apiFetch("/api/admin/access");
+  if(res.status===401) throw new Error("unauthorized");
+  if(!res.ok) throw new Error("load failed");
+  const data = await res.json();
+  renderUsers(data.users||[]);
+}
+
+async function loadPromotions(){
+  const res = await apiFetch("/api/admin/promotions");
+  if(!res.ok) throw new Error("load failed");
+  const data = await res.json();
+  const list = data.promotions||[];
+  const tbody = document.getElementById("pc-tbody");
+  document.getElementById("pc-empty").hidden = !!list.length;
+  tbody.innerHTML = list.map(p=>`<tr>
+    <td class="name">${escapeHtml(p.code)}</td>
+    <td>${p.points}</td>
+    <td>${p.redeemed_count||0}</td>
+    <td>${p.max_redemptions||"—"}</td>
+    <td><span class="badge">${p.active ? "Đang bật" : "Đã tắt"}</span></td>
+    <td><div class="row-actions"><button class="mini-btn ${p.active?'danger':''}" data-toggle-pc="${p.id}">${p.active?"Tắt":"Bật"}</button></div></td>
+  </tr>`).join("");
+  tbody.querySelectorAll("[data-toggle-pc]").forEach(btn=>btn.addEventListener("click", async ()=>{
+    btn.disabled = true;
+    try{
+      const id = btn.dataset.togglePc;
+      const target = list.find(x=>x.id===id);
+      const res = await apiFetch("/api/admin/promotions", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, active: !target.active}) });
+      if(!res.ok) throw new Error();
+      loadPromotions();
+    }catch(_){ toast('Không lưu được.', true); btn.disabled=false; }
+  }));
+}
+document.getElementById("pc-create").addEventListener("click", async ()=>{
+  const code = document.getElementById("pc-code").value.trim();
+  const points = parseInt(document.getElementById("pc-points").value, 10);
+  const maxRaw = document.getElementById("pc-max").value.trim();
+  const max = maxRaw ? parseInt(maxRaw, 10) : null;
+  const err = document.getElementById("pc-error");
+  err.textContent = "";
+  if(!code || !(points>0)){ err.textContent = "Nhập mã và số Point hợp lệ."; return; }
+  const btn = document.getElementById("pc-create"); btn.disabled = true;
+  try{
+    const res = await apiFetch("/api/admin/promotions", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({code, points, max_redemptions:max}) });
+    if(!res.ok){ const d = await res.json().catch(()=>({})); throw new Error(d.error||"failed"); }
+    document.getElementById("pc-code").value=""; loadPromotions();
+  }catch(e){ err.textContent = e.message==="conflict" ? "Mã đã tồn tại." : "Không tạo được mã."; }
+  finally{ btn.disabled=false; }
+});
+
+async function loadPoints(){
+  const res = await apiFetch("/api/admin/points");
+  if(!res.ok) throw new Error("load failed");
+  const data = await res.json();
+  const list = data.accounts||[];
+  const tbody = document.getElementById("pt-tbody");
+  document.getElementById("pt-empty").hidden = !!list.length;
+  tbody.innerHTML = list.map(a=>`<tr>
+    <td class="uid">${escapeHtml(a.user_id)}</td>
+    <td class="name">${a.balance}</td>
+    <td>${fmtDate(a.updated_at)}</td>
+  </tr>`).join("");
+}
+document.getElementById("pt-submit").addEventListener("click", async ()=>{
+  const userId = document.getElementById("pt-user").value.trim();
+  const delta = parseInt(document.getElementById("pt-delta").value, 10);
+  const reason = document.getElementById("pt-reason").value.trim() || "admin_adjust";
+  const err = document.getElementById("pt-error");
+  err.textContent = "";
+  if(!userId || !delta){ err.textContent = "Nhập User ID và số Point."; return; }
+  const btn = document.getElementById("pt-submit"); btn.disabled = true;
+  try{
+    const res = await apiFetch("/api/admin/points", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({user_id:userId, delta, reason}) });
+    if(!res.ok){ const d = await res.json().catch(()=>({})); throw new Error(d.error||"failed"); }
+    loadPoints();
+  }catch(e){ err.textContent = e.message==="no_user" ? "Không tìm thấy user." : "Không thực hiện được."; }
+  finally{ btn.disabled=false; }
+});
+
+async function loadModules(){
+  const res = await apiFetch("/api/admin/modules");
+  if(!res.ok) throw new Error("load failed");
+  const data = await res.json();
+  const list = data.modules||[];
+  const tbody = document.getElementById("mod-tbody");
+  document.getElementById("mod-empty").hidden = !!list.length;
+  tbody.innerHTML = list.map(m=>`<tr data-slug="${m.slug}">
+    <td class="name">${escapeHtml(m.name)}</td>
+    <td>
+      <select class="mini-btn" data-mod-mode="${m.id}">
+        ${["public","login","paid","disabled"].map(mode=>`<option value="${mode}" ${m.access_mode===mode?"selected":""}>${mode}</option>`).join("")}
+      </select>
+    </td>
+    <td><input class="price-input" type="number" min="0" data-mod-price="${m.id}" value="${m.price_points ?? 0}"></td>
+    <td class="mod-cell"><button class="toggle ${m.enabled?'on':''}" data-mod-toggle="${m.id}"></button></td>
+  </tr>`).join("");
+  tbody.querySelectorAll("[data-mod-toggle]").forEach(btn=>btn.addEventListener("click", async ()=>{
+    btn.disabled = true;
+    try{
+      const id = btn.dataset.modToggle;
+      const target = list.find(x=>x.id===id);
+      const res = await apiFetch("/api/admin/modules", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, enabled: !target.enabled}) });
+      if(!res.ok) throw new Error();
+      btn.classList.toggle("on", !target.enabled);
+    }catch(_){ toast('Không lưu được.', true); }
+    finally{ btn.disabled=false; }
+  }));
+  tbody.querySelectorAll("[data-mod-mode]").forEach(sel=>sel.addEventListener("change", async ()=>{
+    const id = sel.dataset.modMode;
+    const res = await apiFetch("/api/admin/modules", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, access_mode: sel.value}) });
+    if(!res.ok) toast('Không lưu được chế độ truy cập.', true);
+  }));
+  tbody.querySelectorAll("[data-mod-price]").forEach(inp=>inp.addEventListener("change", async ()=>{
+    const id = inp.dataset.modPrice;
+    const points = parseInt(inp.value, 10) || 0;
+    const res = await apiFetch("/api/admin/modules", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, price_points: points}) });
+    if(!res.ok) toast('Không lưu được giá.', true);
+  }));
+}
+
+async function loadPopups(){
+  const res = await apiFetch("/api/admin/popups");
+  if(!res.ok) throw new Error("load failed");
+  const data = await res.json();
+  const list = data.popups||[];
+  const tbody = document.getElementById("pp-tbody");
+  document.getElementById("pp-empty").hidden = !!list.length;
+  tbody.innerHTML = list.map(p=>`<tr>
+    <td class="name">${escapeHtml(p.title)}</td>
+    <td>${p.module_slug ? escapeHtml(MODULE_LABELS[p.module_slug]||p.module_slug) : "Toàn bộ"}</td>
+    <td><span class="badge">${p.active ? "Đang bật" : "Đã tắt"}</span></td>
+    <td class="mod-cell"><button class="toggle ${p.active?'on':''}" data-pp-toggle="${p.id}"></button></td>
+    <td><div class="row-actions"><button class="mini-btn danger" data-pp-del="${p.id}">Xóa</button></div></td>
+  </tr>`).join("");
+  tbody.querySelectorAll("[data-pp-toggle]").forEach(btn=>btn.addEventListener("click", async ()=>{
+    btn.disabled = true;
+    try{
+      const id = btn.dataset.ppToggle;
+      const target = list.find(x=>x.id===id);
+      const res = await apiFetch("/api/admin/popups", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, active: !target.active}) });
+      if(!res.ok) throw new Error();
+      loadPopups();
+    }catch(_){ toast('Không lưu được.', true); btn.disabled=false; }
+  }));
+  tbody.querySelectorAll("[data-pp-del]").forEach(btn=>btn.addEventListener("click", async ()=>{
+    if(!confirm("Xóa popup này?")) return;
+    btn.disabled = true;
+    try{
+      const res = await apiFetch("/api/admin/popups", { method:"DELETE", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id: btn.dataset.ppDel}) });
+      if(!res.ok) throw new Error();
+      loadPopups();
+    }catch(_){ toast('Không xóa được.', true); btn.disabled=false; }
+  }));
+}
+document.getElementById("pp-create").addEventListener("click", async ()=>{
+  const title = document.getElementById("pp-title").value.trim();
+  const body = document.getElementById("pp-body").value.trim();
+  const moduleRaw = document.getElementById("pp-module").value;
+  const ends = document.getElementById("pp-ends").value;
+  const err = document.getElementById("pp-error");
+  err.textContent = "";
+  if(!title || !body){ err.textContent = "Nhập tiêu đề và nội dung."; return; }
+  const btn = document.getElementById("pp-create"); btn.disabled = true;
+  try{
+    const res = await apiFetch("/api/admin/popups", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title, body, module_slug: moduleRaw||null, ends_at: ends ? new Date(ends).toISOString() : null }) });
+    if(!res.ok) throw new Error();
+    document.getElementById("pp-title").value=""; document.getElementById("pp-body").value="";
+    loadPopups();
+  }catch(_){ err.textContent = "Không tạo được popup."; }
+  finally{ btn.disabled=false; }
+});
+
+gateForm.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  gateError.textContent = "";
+  adminPassword = document.getElementById("gate-password").value;
+  try{
+    await loadUsers();
+    gateForm.hidden = true;
+    document.getElementById('gate-wrap').hidden = true;
+    dash.hidden = false;
+    loadOverview();
+  }catch(err){
+    adminPassword = "";
+    gateError.textContent = "Sai mật khẩu quản trị hoặc không tải được dữ liệu.";
+  }
+});
+document.getElementById("btn-logout").addEventListener("click", ()=>{
+  adminPassword = "";
+  dash.hidden = true;
+  document.getElementById('gate-wrap').hidden = false;
+  gateForm.hidden = false;
+  document.getElementById("gate-password").value = "";
+});
+document.getElementById("btn-refresh").addEventListener("click", ()=>{
+  loadUsers().catch(()=>{ toast('Không tải lại được danh sách.', true); });
+});
+</script>
+</body>
+</html>
