@@ -24,7 +24,7 @@ export async function onRequestGet(context) {
   if (!checkAdmin(request, env)) return json(401, { error: "unauthorized" });
   if (!env.DB) return json(500, { error: "no_db" });
   const { results } = await env.DB.prepare(
-    "SELECT id, code, points, max_redemptions, redeemed_count, active, created_at FROM promotion_codes ORDER BY created_at DESC"
+    "SELECT id, code, points, bonus_type, min_amount_vnd, max_redemptions, redeemed_count, active, created_at FROM promotion_codes ORDER BY created_at DESC"
   ).all();
   return json(200, { promotions: results || [] });
 }
@@ -36,12 +36,17 @@ export async function onRequestPost(context) {
   const body = await request.json().catch(() => null);
   if (!body || !body.code || !(body.points > 0)) return json(400, { error: "bad_request" });
   const code = String(body.code).trim().toUpperCase();
+  // bonus_type: "points" (cộng thẳng) hoặc "percent" (% mức nạp). percent => points chính là số %.
+  const bonusType = body.bonus_type === "percent" ? "percent" : "points";
+  if (bonusType === "percent" && (body.points > 100 || body.points <= 0)) return json(400, { error: "bad_percent" });
+  // min_amount_vnd: mức nạp tối thiểu để áp mã (null = áp cho mọi lần nạp).
+  const minAmount = body.min_amount_vnd != null && Number.isInteger(body.min_amount_vnd) && body.min_amount_vnd > 0 ? body.min_amount_vnd : null;
   const existing = await env.DB.prepare("SELECT id FROM promotion_codes WHERE code = ?").bind(code).first();
   if (existing) return json(409, { error: "conflict" });
   const id = uuid();
   await env.DB.prepare(
-    "INSERT INTO promotion_codes (id, code, points, max_redemptions, redeemed_count, active, created_at) VALUES (?, ?, ?, ?, 0, 1, ?)"
-  ).bind(id, code, body.points, body.max_redemptions || null, nowIso()).run();
+    "INSERT INTO promotion_codes (id, code, points, bonus_type, min_amount_vnd, max_redemptions, redeemed_count, active, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?)"
+  ).bind(id, code, body.points, bonusType, minAmount, body.max_redemptions || null, nowIso()).run();
   return json(200, { ok: true, id });
 }
 
