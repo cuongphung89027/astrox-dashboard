@@ -109,6 +109,25 @@
   textarea{ width:100%; min-height:84px; padding:13px 15px; border-radius:var(--r-md); border:1.5px solid var(--line); font:inherit; font-size:14px; margin:8px 0 10px; background:var(--surface-tint); outline:none; resize:vertical; }
   textarea:focus{ border-color:var(--teal); background:#fff; }
   .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  /* ===== Cards native trên mobile (thay bảng cuộn ngang) ===== */
+  .m-cards{ display:none; flex-direction:column; gap:12px; }
+  .ucard{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:16px; box-shadow:var(--shadow-1); }
+  .ucard-head{ display:flex; width:100%; align-items:center; justify-content:space-between; gap:10px; background:none; border:none; padding:0; cursor:pointer; text-align:left; font:inherit; color:inherit; -webkit-tap-highlight-color:transparent; }
+  .ucard-chevron{ display:flex; align-items:center; gap:8px; flex-shrink:0; color:var(--ink-faint); font-size:12.5px; font-weight:700; }
+  .ucard-chevron .arrow{ transition:transform .2s; font-size:14px; }
+  .ucard.open .ucard-chevron .arrow{ transform:rotate(180deg); }
+  .ucard-body{ display:none; }
+  .ucard.open .ucard-body{ display:block; }
+  .ucard-name{ font-weight:700; font-size:14.5px; word-break:break-all; }
+  .ucard-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .ucard-meta{ font-size:10.5px; color:var(--ink-faint); font-family:ui-monospace,monospace; margin-top:6px; line-height:1.6; word-break:break-all; }
+  .ucard-mods{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; margin-top:12px; }
+  .ucard-mod{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--surface-tint); border:1px solid var(--line); border-radius:var(--r-md); padding:9px 11px; font-size:12px; font-weight:600; color:var(--ink-soft); }
+  .ucard-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; }
+  @media(max-width:860px){
+    .hide-mobile{ display:none; }
+    .m-cards{ display:flex; }
+  }
 
   /* ===== Gate (đăng nhập admin) ===== */
   .gate-wrap{ min-height:80vh; display:flex; align-items:center; justify-content:center; }
@@ -201,7 +220,7 @@
             <h2 class="serif">Tài khoản user</h2>
             <p class="sub">Bật/tắt module được phép sử dụng cho từng tài khoản. Module không có dòng phân quyền riêng nghĩa là được phép theo mặc định.</p>
           </div>
-          <div class="card" style="padding:6px 12px;">
+          <div class="card hide-mobile" style="padding:6px 12px;">
             <div class="table-scroll">
               <table id="user-table">
                 <thead>
@@ -218,8 +237,9 @@
                 <tbody id="user-tbody"></tbody>
               </table>
             </div>
-            <div class="empty" id="user-empty" hidden>Chưa có người dùng nào.</div>
           </div>
+          <div class="m-cards" id="user-cards"></div>
+          <div class="empty" id="user-empty" hidden>Chưa có người dùng nào.</div>
           <div style="text-align:right; margin-top:12px;"><button class="btn" id="btn-refresh" style="width:auto;">Tải lại danh sách</button></div>
         </section>
 
@@ -237,15 +257,16 @@
             <button class="btn btn-primary" id="pc-create" style="width:auto; margin-top:12px;">Tạo mã</button>
             <p class="err-text" id="pc-error"></p>
           </div>
-          <div class="card" style="margin-top:16px; padding:6px 12px;">
+          <div class="card hide-mobile" style="margin-top:16px; padding:6px 12px;">
             <div class="table-scroll">
               <table>
                 <thead><tr><th>Mã</th><th>Point</th><th>Đã dùng</th><th>Giới hạn</th><th>Trạng thái</th><th></th></tr></thead>
                 <tbody id="pc-tbody"></tbody>
               </table>
             </div>
-            <div class="empty" id="pc-empty" hidden>Chưa có promotion code nào.</div>
           </div>
+          <div class="m-cards" id="pc-cards" style="margin-top:16px;"></div>
+          <div class="empty" id="pc-empty" hidden>Chưa có promotion code nào.</div>
         </section>
 
         <section data-panel-content="points" hidden>
@@ -262,15 +283,16 @@
             <button class="btn btn-primary" id="pt-submit" style="width:auto; margin-top:12px;">Thực hiện</button>
             <p class="err-text" id="pt-error"></p>
           </div>
-          <div class="card" style="margin-top:16px; padding:6px 12px;">
+          <div class="card hide-mobile" style="margin-top:16px; padding:6px 12px;">
             <div class="table-scroll">
               <table>
                 <thead><tr><th>User</th><th>Số dư</th><th>Cập nhật</th></tr></thead>
                 <tbody id="pt-tbody"></tbody>
               </table>
             </div>
-            <div class="empty" id="pt-empty" hidden>Chưa có tài khoản điểm nào.</div>
           </div>
+          <div class="m-cards" id="pt-cards" style="margin-top:16px;"></div>
+          <div class="empty" id="pt-empty" hidden>Chưa có tài khoản điểm nào.</div>
         </section>
 
         <section data-panel-content="modules" hidden>
@@ -278,7 +300,7 @@
             <h2 class="serif">Module — khóa/giá</h2>
             <p class="sub">Chế độ truy cập: <b>public</b> (không cần đăng nhập) · <b>login</b> (cần đăng nhập) · <b>paid</b> (tốn Point) · <b>disabled</b> (khóa hoàn toàn).</p>
           </div>
-          <div class="card" style="padding:6px 12px;">
+          <div class="card hide-mobile" style="padding:6px 12px;">
             <div class="table-scroll">
               <table>
                 <thead><tr><th>Module</th><th>Chế độ</th><th>Giá (Point)</th><th class="mod-cell">Khóa / Mở</th></tr></thead>
@@ -287,6 +309,8 @@
             </div>
             <div class="empty" id="mod-empty" hidden>Chưa có module nào.</div>
           </div>
+          <div class="m-cards" id="mod-cards"></div>
+          <div class="empty" id="mod-empty-m" hidden>Chưa có module nào.</div>
         </section>
 
         <section data-panel-content="popups" hidden>
@@ -298,7 +322,6 @@
             <div class="form-grid">
               <div><label>Module</label><select id="pp-module" class="mini-btn" style="width:100%; margin-top:8px;">
                 <option value="">— Toàn bộ —</option>
-                ${''}
               </select></div>
               <div><label>Tiêu đề</label><input id="pp-title" placeholder="VD: Bảo trì hệ thống"></div>
               <div><label>Hết hạn (tùy chọn)</label><input id="pp-ends" type="datetime-local"></div>
@@ -307,15 +330,16 @@
             <button class="btn btn-primary" id="pp-create" style="width:auto; margin-top:12px;">Tạo popup</button>
             <p class="err-text" id="pp-error"></p>
           </div>
-          <div class="card" style="margin-top:16px; padding:6px 12px;">
+          <div class="card hide-mobile" style="margin-top:16px; padding:6px 12px;">
             <div class="table-scroll">
               <table>
                 <thead><tr><th>Tiêu đề</th><th>Module</th><th>Trạng thái</th><th class="mod-cell">Bật/Tắt</th><th></th></tr></thead>
                 <tbody id="pp-tbody"></tbody>
               </table>
             </div>
-            <div class="empty" id="pp-empty" hidden>Chưa có popup nào.</div>
           </div>
+          <div class="m-cards" id="pp-cards" style="margin-top:16px;"></div>
+          <div class="empty" id="pp-empty" hidden>Chưa có popup nào.</div>
         </section>
       </div>
     </div>
@@ -402,12 +426,13 @@ async function loadOverview(){
 
 function renderUsers(users){
   const tbody = document.getElementById("user-tbody");
+  const cards = document.getElementById("user-cards");
   const empty = document.getElementById("user-empty");
-  if(!users.length){ tbody.innerHTML=""; empty.hidden=false; return; }
+  if(!users.length){ tbody.innerHTML=""; cards.innerHTML=""; empty.hidden=false; return; }
   empty.hidden = true;
   tbody.innerHTML = users.map(u=>{
     const label = u.email || u.name || "(chưa rõ)";
-    const sub = u.email && u.name ? u.name : (u.hasProfile ? "" : "Chưa lưu hồ sơ");
+    const sub = u.email && u.name ? u.name : (u.provider === "zalo" ? "Zalo" : (u.hasProfile ? "" : "Chưa lưu hồ sơ"));
     return `<tr data-uid="${u.userId}">
       <td>
         <div class="name">${escapeHtml(label)}</div>
@@ -418,13 +443,36 @@ function renderUsers(users){
       ${MODULES.map(m=>`<td class="mod-cell"><button class="toggle ${u.access[m]?'on':''}" data-module="${m}" aria-label="${m}"></button></td>`).join("")}
     </tr>`;
   }).join("");
-  tbody.querySelectorAll(".toggle").forEach(btn=>{
+  cards.innerHTML = users.map(u=>{
+    const label = u.email || u.name || "(chưa rõ)";
+    const sub = u.email && u.name ? u.name : (u.provider === "zalo" ? "Zalo" : (u.hasProfile ? "" : "Chưa lưu hồ sơ"));
+    const onCount = MODULES.filter(m=>u.access[m]).length;
+    return `<div class="ucard" data-uid="${u.userId}">
+      <button type="button" class="ucard-head">
+        <div style="min-width:0;">
+          <div class="ucard-name">${escapeHtml(label)}</div>
+          ${sub ? `<div class="ucard-sub">${escapeHtml(sub)}</div>` : ""}
+        </div>
+        <span class="ucard-chevron"><span class="chev-count">${onCount}/${MODULES.length}</span><span class="arrow">▾</span></span>
+      </button>
+      <div class="ucard-body">
+        <div class="ucard-meta">${u.userId}<br>Hoạt động: ${fmtDate(u.lastSeen)}</div>
+        <div class="ucard-mods">
+          ${MODULES.map(m=>`<div class="ucard-mod"><span>${MODULE_LABELS[m]}</span><button class="toggle ${u.access[m]?'on':''}" data-module="${m}" aria-label="${m}"></button></div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+  cards.querySelectorAll(".ucard-head").forEach(head=>{
+    head.addEventListener("click", ()=> head.closest(".ucard").classList.toggle("open"));
+  });
+  document.querySelectorAll("#user-tbody .toggle, #user-cards .toggle").forEach(btn=>{
     btn.addEventListener("click", ()=> toggleModule(btn));
   });
 }
 async function toggleModule(btn){
-  const tr = btn.closest("tr");
-  const userId = tr.dataset.uid;
+  const row = btn.closest("[data-uid]");
+  const userId = row.dataset.uid;
   const module = btn.dataset.module;
   const nextEnabled = !btn.classList.contains("on");
   btn.disabled = true;
@@ -435,7 +483,10 @@ async function toggleModule(btn){
       body: JSON.stringify({userId, module, enabled: nextEnabled})
     });
     if(!res.ok) throw new Error("save failed");
-    btn.classList.toggle("on", nextEnabled);
+    // Đồng bộ cả bảng desktop lẫn card mobile
+    row.querySelectorAll(`.toggle[data-module="${module}"]`).forEach(t=>t.classList.toggle("on", nextEnabled));
+    const chev = row.querySelector(".chev-count");
+    if(chev) chev.textContent = row.querySelectorAll(".ucard-mods .toggle.on").length + "/" + MODULES.length;
   }catch(_){
     toast('Không lưu được thay đổi. Thử lại.', true);
   }finally{
@@ -456,6 +507,7 @@ async function loadPromotions(){
   const data = await res.json();
   const list = data.promotions||[];
   const tbody = document.getElementById("pc-tbody");
+  const cards = document.getElementById("pc-cards");
   document.getElementById("pc-empty").hidden = !!list.length;
   tbody.innerHTML = list.map(p=>`<tr>
     <td class="name">${escapeHtml(p.code)}</td>
@@ -465,7 +517,15 @@ async function loadPromotions(){
     <td><span class="badge">${p.active ? "Đang bật" : "Đã tắt"}</span></td>
     <td><div class="row-actions"><button class="mini-btn ${p.active?'danger':''}" data-toggle-pc="${p.id}">${p.active?"Tắt":"Bật"}</button></div></td>
   </tr>`).join("");
-  tbody.querySelectorAll("[data-toggle-pc]").forEach(btn=>btn.addEventListener("click", async ()=>{
+  cards.innerHTML = list.map(p=>`<div class="ucard">
+    <div class="ucard-name" style="font-family:ui-monospace,monospace; letter-spacing:.02em;">${escapeHtml(p.code)}</div>
+    <div class="ucard-sub">${p.points} Point · Đã dùng ${p.redeemed_count||0}${p.max_redemptions?` / ${p.max_redemptions}`:""}</div>
+    <div class="ucard-foot">
+      <span class="badge ${p.active?'on':''}">${p.active ? "Đang bật" : "Đã tắt"}</span>
+      <button class="mini-btn ${p.active?'danger':''}" data-toggle-pc="${p.id}">${p.active?"Tắt mã":"Bật lại"}</button>
+    </div>
+  </div>`).join("");
+  document.querySelectorAll("[data-toggle-pc]").forEach(btn=>btn.addEventListener("click", async ()=>{
     btn.disabled = true;
     try{
       const id = btn.dataset.togglePc;
@@ -499,12 +559,18 @@ async function loadPoints(){
   const data = await res.json();
   const list = data.accounts||[];
   const tbody = document.getElementById("pt-tbody");
+  const cards = document.getElementById("pt-cards");
   document.getElementById("pt-empty").hidden = !!list.length;
   tbody.innerHTML = list.map(a=>`<tr>
     <td class="uid">${escapeHtml(a.user_id)}</td>
     <td class="name">${a.balance}</td>
     <td>${fmtDate(a.updated_at)}</td>
   </tr>`).join("");
+  cards.innerHTML = list.map(a=>`<div class="ucard">
+    <div class="ucard-name">${a.balance} Point</div>
+    <div class="ucard-meta">${escapeHtml(a.user_id)}</div>
+    <div class="ucard-sub">Cập nhật: ${fmtDate(a.updated_at)}</div>
+  </div>`).join("");
 }
 document.getElementById("pt-submit").addEventListener("click", async ()=>{
   const userId = document.getElementById("pt-user").value.trim();
@@ -528,38 +594,53 @@ async function loadModules(){
   const data = await res.json();
   const list = data.modules||[];
   const tbody = document.getElementById("mod-tbody");
+  const cards = document.getElementById("mod-cards");
   document.getElementById("mod-empty").hidden = !!list.length;
+  document.getElementById("mod-empty-m").hidden = !!list.length;
+  const modeOpts = m => ["public","login","paid","disabled"].map(mode=>`<option value="${mode}" ${m.access_mode===mode?"selected":""}>${mode}</option>`).join("");
   tbody.innerHTML = list.map(m=>`<tr data-slug="${m.slug}">
     <td class="name">${escapeHtml(m.name)}</td>
     <td>
       <select class="mini-btn" data-mod-mode="${m.id}">
-        ${["public","login","paid","disabled"].map(mode=>`<option value="${mode}" ${m.access_mode===mode?"selected":""}>${mode}</option>`).join("")}
+        ${modeOpts(m)}
       </select>
     </td>
     <td><input class="price-input" type="number" min="0" data-mod-price="${m.id}" value="${m.price_points ?? 0}"></td>
     <td class="mod-cell"><button class="toggle ${m.enabled?'on':''}" data-mod-toggle="${m.id}"></button></td>
   </tr>`).join("");
-  tbody.querySelectorAll("[data-mod-toggle]").forEach(btn=>btn.addEventListener("click", async ()=>{
+  cards.innerHTML = list.map(m=>`<div class="ucard">
+    <div class="ucard-foot" style="margin-top:0;">
+      <div class="ucard-name">${escapeHtml(m.name)}</div>
+      <button class="toggle ${m.enabled?'on':''}" data-mod-toggle="${m.id}" aria-label="Khóa/Mở ${escapeHtml(m.name)}"></button>
+    </div>
+    <div class="ucard-mods" style="grid-template-columns:1fr 1fr;">
+      <div class="ucard-mod"><span>Chế độ</span><select class="mini-btn" style="margin:0;" data-mod-mode="${m.id}">${modeOpts(m)}</select></div>
+      <div class="ucard-mod"><span>Giá (Point)</span><input class="price-input" style="width:76px !important;" type="number" min="0" data-mod-price="${m.id}" value="${m.price_points ?? 0}"></div>
+    </div>
+  </div>`).join("");
+  document.querySelectorAll("[data-mod-toggle]").forEach(btn=>btn.addEventListener("click", async ()=>{
     btn.disabled = true;
     try{
       const id = btn.dataset.modToggle;
       const target = list.find(x=>x.id===id);
       const res = await apiFetch("/api/admin/modules", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, enabled: !target.enabled}) });
       if(!res.ok) throw new Error();
-      btn.classList.toggle("on", !target.enabled);
+      document.querySelectorAll(`[data-mod-toggle="${id}"]`).forEach(t=>t.classList.toggle("on", !target.enabled));
     }catch(_){ toast('Không lưu được.', true); }
     finally{ btn.disabled=false; }
   }));
-  tbody.querySelectorAll("[data-mod-mode]").forEach(sel=>sel.addEventListener("change", async ()=>{
+  document.querySelectorAll("[data-mod-mode]").forEach(sel=>sel.addEventListener("change", async ()=>{
     const id = sel.dataset.modMode;
     const res = await apiFetch("/api/admin/modules", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, access_mode: sel.value}) });
     if(!res.ok) toast('Không lưu được chế độ truy cập.', true);
+    document.querySelectorAll(`[data-mod-mode="${id}"]`).forEach(s=>{ if(s!==sel) s.value=sel.value; });
   }));
-  tbody.querySelectorAll("[data-mod-price]").forEach(inp=>inp.addEventListener("change", async ()=>{
+  document.querySelectorAll("[data-mod-price]").forEach(inp=>inp.addEventListener("change", async ()=>{
     const id = inp.dataset.modPrice;
     const points = parseInt(inp.value, 10) || 0;
     const res = await apiFetch("/api/admin/modules", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, price_points: points}) });
     if(!res.ok) toast('Không lưu được giá.', true);
+    document.querySelectorAll(`[data-mod-price="${id}"]`).forEach(i=>{ if(i!==inp) i.value=inp.value; });
   }));
 }
 
@@ -569,6 +650,7 @@ async function loadPopups(){
   const data = await res.json();
   const list = data.popups||[];
   const tbody = document.getElementById("pp-tbody");
+  const cards = document.getElementById("pp-cards");
   document.getElementById("pp-empty").hidden = !!list.length;
   tbody.innerHTML = list.map(p=>`<tr>
     <td class="name">${escapeHtml(p.title)}</td>
@@ -577,7 +659,20 @@ async function loadPopups(){
     <td class="mod-cell"><button class="toggle ${p.active?'on':''}" data-pp-toggle="${p.id}"></button></td>
     <td><div class="row-actions"><button class="mini-btn danger" data-pp-del="${p.id}">Xóa</button></div></td>
   </tr>`).join("");
-  tbody.querySelectorAll("[data-pp-toggle]").forEach(btn=>btn.addEventListener("click", async ()=>{
+  cards.innerHTML = list.map(p=>`<div class="ucard">
+    <div class="ucard-foot" style="margin-top:0;">
+      <div style="min-width:0;">
+        <div class="ucard-name">${escapeHtml(p.title)}</div>
+        <div class="ucard-sub">${p.module_slug ? escapeHtml(MODULE_LABELS[p.module_slug]||p.module_slug) : "Toàn bộ"}</div>
+      </div>
+      <button class="toggle ${p.active?'on':''}" data-pp-toggle="${p.id}" aria-label="Bật/Tắt popup"></button>
+    </div>
+    <div class="ucard-foot">
+      <span class="badge ${p.active?'on':''}">${p.active ? "Đang bật" : "Đã tắt"}</span>
+      <button class="mini-btn danger" data-pp-del="${p.id}">Xóa</button>
+    </div>
+  </div>`).join("");
+  document.querySelectorAll("[data-pp-toggle]").forEach(btn=>btn.addEventListener("click", async ()=>{
     btn.disabled = true;
     try{
       const id = btn.dataset.ppToggle;
@@ -587,7 +682,7 @@ async function loadPopups(){
       loadPopups();
     }catch(_){ toast('Không lưu được.', true); btn.disabled=false; }
   }));
-  tbody.querySelectorAll("[data-pp-del]").forEach(btn=>btn.addEventListener("click", async ()=>{
+  document.querySelectorAll("[data-pp-del]").forEach(btn=>btn.addEventListener("click", async ()=>{
     if(!confirm("Xóa popup này?")) return;
     btn.disabled = true;
     try{
