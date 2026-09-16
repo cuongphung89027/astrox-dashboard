@@ -250,8 +250,15 @@
           </div>
           <div class="card">
             <div class="form-grid">
-              <div><label>Mã</label><input id="pc-code" placeholder="VD: TET2026" autocapitalize="characters"></div>
-              <div><label>Số Point</label><input id="pc-points" type="number" inputmode="numeric" min="1" value="100"></div>
+              <div><label>Mã</label><input id="pc-code" placeholder="VD: TET2026" autocapitalize="characters" style="text-transform:uppercase;"></div>
+              <div><label>Kieu thưởng: % hoặc Point</label>
+                <select id="pc-bonus-type" style="width:100%; margin-top:8px; padding:10px 12px; border-radius:var(--r-md); border:1.5px solid var(--line); background:var(--surface-tint); font-size:13px; font-weight:600;">
+                  <option value="points">Cộng thẳng Point</option>
+                  <option value="percent">Theo % mức nạp</option>
+                </select>
+              </div>
+              <div><label id="pc-points-label">Số Point thưởng</label><input id="pc-points" type="number" inputmode="numeric" min="1" value="10"></div>
+              <div><label>Mức nạp tối thiểu (đ) — trống = không giới hạn</label><input id="pc-min" type="number" inputmode="numeric" min="10000" step="10000" placeholder="VD: 50000"></div>
               <div><label>Giới hạn lượt (tùy chọn)</label><input id="pc-max" type="number" inputmode="numeric" min="1" placeholder="—"></div>
             </div>
             <button class="btn btn-primary" id="pc-create" style="width:auto; margin-top:12px;">Tạo mã</button>
@@ -260,7 +267,7 @@
           <div class="card hide-mobile" style="margin-top:16px; padding:6px 12px;">
             <div class="table-scroll">
               <table>
-                <thead><tr><th>Mã</th><th>Point</th><th>Đã dùng</th><th>Giới hạn</th><th>Trạng thái</th><th></th></tr></thead>
+                <thead><tr><th>Mã</th><th>Thưởng</th><th>Điều kiện</th><th>Đã dùng</th><th>Trạng thái</th><th></th></tr></thead>
                 <tbody id="pc-tbody"></tbody>
               </table>
             </div>
@@ -509,19 +516,26 @@ async function loadPromotions(){
   const tbody = document.getElementById("pc-tbody");
   const cards = document.getElementById("pc-cards");
   document.getElementById("pc-empty").hidden = !!list.length;
+  const bonusText = p => p.bonus_type === "percent" ? `+${p.points}% mức nạp` : `+${p.points} Point`;
+  const condText = p => p.min_amount_vnd ? `Nạp từ ${p.min_amount_vnd.toLocaleString("vi-VN")}đ` : "Mọi lần nạp";
   tbody.innerHTML = list.map(p=>`<tr>
     <td class="name">${escapeHtml(p.code)}</td>
-    <td>${p.points}</td>
-    <td>${p.redeemed_count||0}</td>
-    <td>${p.max_redemptions||"—"}</td>
+    <td>${bonusText(p)}</td>
+    <td>${condText(p)}</td>
+    <td>${p.redeemed_count||0}${p.max_redemptions?`/${p.max_redemptions}`:""}</td>
     <td><span class="badge">${p.active ? "Đang bật" : "Đã tắt"}</span></td>
     <td><div class="row-actions"><button class="mini-btn ${p.active?'danger':''}" data-toggle-pc="${p.id}">${p.active?"Tắt":"Bật"}</button></div></td>
   </tr>`).join("");
   cards.innerHTML = list.map(p=>`<div class="ucard">
-    <div class="ucard-name" style="font-family:ui-monospace,monospace; letter-spacing:.02em;">${escapeHtml(p.code)}</div>
-    <div class="ucard-sub">${p.points} Point · Đã dùng ${p.redeemed_count||0}${p.max_redemptions?` / ${p.max_redemptions}`:""}</div>
-    <div class="ucard-foot">
+    <div class="ucard-foot" style="margin-top:0;">
+      <div style="min-width:0;">
+        <div class="ucard-name" style="font-family:ui-monospace,monospace; letter-spacing:.02em;">${escapeHtml(p.code)}</div>
+        <div class="ucard-sub">${bonusText(p)} · ${condText(p)}</div>
+      </div>
       <span class="badge ${p.active?'on':''}">${p.active ? "Đang bật" : "Đã tắt"}</span>
+    </div>
+    <div class="ucard-foot">
+      <span style="font-size:11.5px; color:var(--ink-faint);">Đã dùng ${p.redeemed_count||0}${p.max_redemptions?`/${p.max_redemptions}`:""} lượt</span>
       <button class="mini-btn ${p.active?'danger':''}" data-toggle-pc="${p.id}">${p.active?"Tắt mã":"Bật lại"}</button>
     </div>
   </div>`).join("");
@@ -537,20 +551,30 @@ async function loadPromotions(){
   }));
 }
 document.getElementById("pc-create").addEventListener("click", async ()=>{
-  const code = document.getElementById("pc-code").value.trim();
+  const code = document.getElementById("pc-code").value.trim().toUpperCase();
   const points = parseInt(document.getElementById("pc-points").value, 10);
+  const bonusType = document.getElementById("pc-bonus-type").value;
+  const minRaw = document.getElementById("pc-min").value.trim();
+  const minAmount = minRaw ? parseInt(minRaw, 10) : null;
   const maxRaw = document.getElementById("pc-max").value.trim();
   const max = maxRaw ? parseInt(maxRaw, 10) : null;
   const err = document.getElementById("pc-error");
   err.textContent = "";
-  if(!code || !(points>0)){ err.textContent = "Nhập mã và số Point hợp lệ."; return; }
+  if(!code || !(points>0)){ err.textContent = "Nhập mã và số thưởng hợp lệ."; return; }
+  if(bonusType === "percent" && points > 100){ err.textContent = "% thưởng phải trong khoảng 1-100."; return; }
   const btn = document.getElementById("pc-create"); btn.disabled = true;
   try{
-    const res = await apiFetch("/api/admin/promotions", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({code, points, max_redemptions:max}) });
+    const res = await apiFetch("/api/admin/promotions", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({code, points, bonus_type: bonusType, min_amount_vnd: minAmount, max_redemptions:max}) });
     if(!res.ok){ const d = await res.json().catch(()=>({})); throw new Error(d.error||"failed"); }
-    document.getElementById("pc-code").value=""; loadPromotions();
-  }catch(e){ err.textContent = e.message==="conflict" ? "Mã đã tồn tại." : "Không tạo được mã."; }
+    document.getElementById("pc-code").value=""; document.getElementById("pc-min").value=""; loadPromotions();
+  }catch(e){ err.textContent = e.message==="conflict" ? "Mã đã tồn tại." : e.message==="bad_percent" ? "% thưởng phải 1-100." : "Không tạo được mã."; }
   finally{ btn.disabled=false; }
+});
+// Đổi nhãn trường thưởng theo loại (% hay Point)
+document.getElementById("pc-bonus-type").addEventListener("change", ()=>{
+  const isPct = document.getElementById("pc-bonus-type").value === "percent";
+  document.getElementById("pc-points-label").textContent = isPct ? "Phần trăm thưởng (1-100)" : "Số Point thưởng";
+  document.getElementById("pc-points").value = isPct ? 10 : 10;
 });
 
 async function loadPoints(){
